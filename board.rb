@@ -3,7 +3,8 @@ require 'colorize'
 class Board
   attr_reader :board, :board_size
 
-  def initialize(new_game = true, board_size = 8)
+  def initialize(board_size = 8, new_game = true)
+    raise "Board size must be an even number" if board_size.odd?
     @board_size = board_size
     @board = Array.new(board_size) { Array.new(board_size) }
     initialize_pieces if new_game
@@ -18,7 +19,14 @@ class Board
   end
 
   def initialize_pieces
-    # place new pieces on the board
+    3.times do |row|
+      board_size.times do |col|
+        if (row + col).even?
+          Piece.new(self, [row, col], :white)
+          Piece.new(self, [board_size - row - 1, board_size - col - 1], :black)
+        end
+      end
+    end
   end
 
   def pieces
