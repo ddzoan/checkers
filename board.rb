@@ -11,7 +11,7 @@ class Board
 
   def dup
     dup_board = Board.new(false, board_size)
-    @board.flaten.compact.each do |piece|
+    @board.flatten.compact.each do |piece|
       Piece.new(dup_board, piece.position.dup, piece.color, piece.king?)
     end
     dup_board

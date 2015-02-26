@@ -15,7 +15,11 @@ class Piece
 
   def move(move_sequence)
     if move_sequence.length > 2 # means sequence of jumps
-      # jumps
+      raise "Invalid move sequence!" unless valid_sequence(move_sequence)
+
+      (move_sequence.length - 1).times do |i|
+        perform_jump(move_sequence[i], move_sequence[i + 1])
+      end
     else
       start_pos, end_pos = move_sequence
       if valid_slide(end_pos)
@@ -29,12 +33,22 @@ class Piece
     true
   end
 
+  def valid_sequence(move_sequence)
+    test_board = board.dup
+    starting_piece = test_board[move_sequence.first]
+    
+    (move_sequence.length - 1).times do |i|
+      return false unless starting_piece.perform_jump(move_sequence[i], move_sequence[i + 1])
+    end
+    true
+  end
+
   def maybe_promote
     promotion_row = color == :white ? 7 : 0
     promote if position[0] == promotion_row
   end
 
-  def perform_jump(start_pos = position, end_pos)
+  def perform_jump(start_pos, end_pos)
     return false unless board.on_board?(end_pos)
     return false unless valid_jumps(start_pos).include?(end_pos)
     self.position = end_pos
@@ -42,12 +56,14 @@ class Piece
     true
   end
 
-  def valid_jumps(start_pos = position)
+  def valid_jumps(start_pos)
     move_diffs.each_with_object([]) do |shift, valid_moves|
       neighbor_pos = apply_shift(start_pos, shift)
+      next unless board.on_board?(neighbor_pos)
       next unless board[neighbor_pos]
       next if board[neighbor_pos].color == color
       jump_to = apply_shift(neighbor_pos,shift)
+      next unless board.on_board?(jump_to)
       if board[jump_to].nil?
         valid_moves << jump_to
       end
