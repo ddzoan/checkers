@@ -1,3 +1,6 @@
+class InvalidMoveError
+end
+
 class Piece
   MOVES = [[1, 1], [1, -1]]
   KING_MOVES = [[-1, 1], [-1, -1]]
@@ -14,26 +17,30 @@ class Piece
   end
 
   def move(move_sequence)
-    if move_sequence.length > 2 # means sequence of jumps
-      raise "Invalid move sequence!" unless valid_sequence(move_sequence)
-
-      (move_sequence.length - 1).times do |i|
-        perform_jump(move_sequence[i], move_sequence[i + 1])
-      end
-    else
+    if move_sequence == 2
       start_pos, end_pos = move_sequence
       if valid_slide(end_pos)
         perform_slide(end_pos)
       elsif valid_jumps(start_pos, end_pos)
         perform_jump(start_pos, end_pos)
+      else
+        raise InvalidMoveError "Invalid move!"
       end
+    elsif move_sequence.length > 2
+      raise InvalidMoveError "Invalid move sequence!" unless valid_sequence?(move_sequence)
+
+      (move_sequence.length - 1).times do |i|
+        perform_jump(move_sequence[i], move_sequence[i + 1])
+      end
+    else
+      raise InvalidMoveError "Invalid move sequence!"
     end
     
     maybe_promote
     true
   end
 
-  def valid_sequence(move_sequence)
+  def valid_sequence?(move_sequence)
     test_board = board.dup
     starting_piece = test_board[move_sequence.first]
     
@@ -62,8 +69,10 @@ class Piece
       next unless board.on_board?(neighbor_pos)
       next unless board[neighbor_pos]
       next if board[neighbor_pos].color == color
+      
       jump_to = apply_shift(neighbor_pos,shift)
       next unless board.on_board?(jump_to)
+      
       if board[jump_to].nil?
         valid_moves << jump_to
       end

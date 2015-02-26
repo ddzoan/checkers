@@ -11,7 +11,7 @@ class Board
 
   def dup
     dup_board = Board.new(false, board_size)
-    @board.flatten.compact.each do |piece|
+    pieces.each do |piece|
       Piece.new(dup_board, piece.position.dup, piece.color, piece.king?)
     end
     dup_board
@@ -21,12 +21,17 @@ class Board
     # place new pieces on the board
   end
 
+  def pieces
+    @board.flatten.compact
+  end
+
   def on_board?(pos)
     x, y = pos
     x >= 0 && y >= 0 && x < board_size && y < board_size
   end
 
   def [](pos)
+    raise "Can't access a position that is not on board!" unless on_board?(pos)
     x, y = pos
     @board[x][y]
   end
