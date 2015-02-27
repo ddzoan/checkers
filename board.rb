@@ -11,7 +11,7 @@ class Board
   end
 
   def dup
-    dup_board = Board.new(false, board_size)
+    dup_board = Board.new(board_size, false)
     pieces.each do |piece|
       Piece.new(dup_board, piece.position.dup, piece.color, piece.king?)
     end
@@ -41,11 +41,22 @@ class Board
     pieces.select { |piece| piece.color == :black }
   end
 
-  def move(move_sequence)
-    if self[move_sequence.first]
-      self[move_sequence.first].move(move_sequence)
+  def move!(color, move_sequence)
+    piece = self[move_sequence.first]
+    if piece
+      raise InvalidMoveError.new "You must make a jumping move!" if any_jumping_moves?(piece.color) && piece.potential_jumps(move_sequence.first).empty?
+      piece.move!(move_sequence)
     else
       raise InvalidMoveError.new "bad starting move"
+    end
+  end
+
+  def any_jumping_moves?(color)
+    prc = Proc.new { |piece| !piece.potential_jumps(piece.position).empty? }
+    if color == :white
+      white_pieces.any?(&prc)
+    else
+      black_pieces.any?(&prc)
     end
   end
 

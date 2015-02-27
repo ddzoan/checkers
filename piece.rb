@@ -13,19 +13,21 @@ class Piece
     board[position] = self
   end
 
-  def move(move_sequence)
-    raise InvalidMoveError.new "Invalid move sequence!" unless valid_sequence?(move_sequence)
+  def move!(move_sequence)
 
     if move_sequence.length == 2
       start_pos, end_pos = move_sequence
       if valid_slide?(end_pos)
+        raise InvalidMoveError.new "This piece can jump something!" unless potential_jumps(start_pos).empty?
         perform_slide(end_pos)
-      elsif potential_jumps(start_pos)
+      elsif !potential_jumps(start_pos).empty?
+        raise InvalidMoveError.new "Invalid move sequence!" unless valid_sequence?(move_sequence)
         perform_jump(start_pos, end_pos)
       else
         raise InvalidMoveError.new "Invalid move!"
       end
     elsif move_sequence.length > 2
+      raise InvalidMoveError.new "Invalid move sequence!" unless valid_sequence?(move_sequence)
 
       (move_sequence.length - 1).times do |i|
         perform_jump(move_sequence[i], move_sequence[i + 1])
@@ -45,6 +47,12 @@ class Piece
     (move_sequence.length - 1).times do |i|
       return false unless starting_piece.perform_jump(move_sequence[i], move_sequence[i + 1])
     end
+
+    final_position = starting_piece.position
+    unless starting_piece.potential_jumps(final_position).empty?
+      raise InvalidMoveError.new "You must jump all the way!"
+    end
+
     true
   end
 

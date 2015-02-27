@@ -25,11 +25,11 @@ class Game
         puts error.to_s.colorize(:red) if error
         error = nil
 
-        move_sequence = players[current_player].play_turn(board)
+        move_sequence = players[current_player].get_turn(board)
 
         raise InvalidMoveError.new "That is not your piece!" unless board[move_sequence.first].color == current_player
 
-        board.move(move_sequence)
+        board.move!(current_player, move_sequence)
         @current_player = current_player == :white ? :black : :white
       rescue InvalidMoveError => error
         retry
@@ -70,6 +70,43 @@ class Game
     g.board = board
     g
   end
+
+  def self.game_w_players
+    player1 = Player.new("player1")
+    player2 = Player.new("player2")
+    Game.new(player1,player2,8)
+  end
+
+  def self.force_double_jump_test
+    player1 = Player.new("player1")
+    dummy = Dummy.new(player1)
+    Game.new(dummy, dummy, 8)
+  end
+end
+
+class Dummy
+  def initialize(player)
+    @player = player
+    @ordered_moves = force_double_jump
+  end
+
+  def force_double_jump
+    p1_moves = ["g2 h3", "c2 b3", "d1 c2", "e0 d1"]
+    p2_moves = ["b5 c4", "c6 b5", "d7 c6", "f5 g4"]
+    ordered_moves = []
+    p1_moves.each_with_index do |move, i|
+      ordered_moves << move << p2_moves[i]
+    end
+    ordered_moves
+  end
+
+  def get_turn(board)
+    if @ordered_moves.empty?
+      @player.get_turn(board)
+    else
+      Player.convert_to_arr(@ordered_moves.shift.upcase)
+    end
+  end
 end
 
 class Player
@@ -79,13 +116,13 @@ class Player
     @name = name
   end
 
-  def play_turn(board)
-    puts "#{name}, give me your move sequence separated by spaces (g1 e3): "
+  def get_turn(board)
+    puts "#{name}, give me your move sequence separated by spaces (g2 e4): "
     input = gets.chomp
-    convert_to_arr(input.upcase)
+    self.class.convert_to_arr(input.upcase)
   end
 
-  def convert_to_arr(input)
+  def self.convert_to_arr(input)
     arr = input.split(' ')
     arr.each_with_object([]) do |notation, move_seq|
       raise InvalidMoveError.new "bad move input" if notation.length > 2
