@@ -119,7 +119,11 @@ class Piece
 
 
   def symbol
-    king? ? "⊗" : "o"
+    if king?
+      color == :white ? "\u{26C4}" : "\u{2617}".colorize(:black)
+    else
+      color == :white ? "\u{26AA}" : "\u{26AB}"
+    end
   end
 
   private

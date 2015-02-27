@@ -3,7 +3,12 @@ require_relative 'board'
 require 'byebug'
 
 class Game
+  attr_reader :board, :current_player, :players
+
   def initialize(player1, player2, board_size = 8)
+    @board = Board.new(board_size)
+    @players = { white: player1, black: player2 }
+    @current_player = :white
   end
 end
 

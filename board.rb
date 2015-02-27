@@ -56,8 +56,8 @@ class Board
       board_size.times do |col|
         sq_color = (row + col).odd? ? :black : :red
         piece = board[row][col]
-        piece_color = piece.color == :white ? :white : :blue if piece
-        rendering += ((piece ? piece.symbol.colorize(piece_color) : " ") + " ").colorize(:background => sq_color)
+        # piece_color = piece.color == :white ? :white : :blue if piece
+        rendering += ((piece ? piece.symbol : " ") + " ").colorize(:background => sq_color)
       end
       rendering += "\n"
     end
