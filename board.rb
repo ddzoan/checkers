@@ -33,6 +33,33 @@ class Board
     @board.flatten.compact
   end
 
+  def white_pieces
+    pieces.select { |piece| piece.color == :white }
+  end
+
+  def black_pieces
+    pieces.select { |piece| piece.color == :black }
+  end
+
+  def move(move_sequence)
+    if self[move_sequence.first]
+      self[move_sequence.first].move(move_sequence)
+    else
+      raise InvalidMoveError.new "bad starting move"
+    end
+  end
+
+  def over?(color)
+    prc = Proc.new { |piece| return false unless piece.potential_moves.empty? }
+    if color == :white
+      white_pieces.each(&prc)
+    else
+      black_pieces.each(&prc)
+    end
+
+    true
+  end
+
   def on_board?(pos)
     x, y = pos
     x >= 0 && y >= 0 && x < board_size && y < board_size
@@ -61,10 +88,10 @@ class Board
       end
       rendering += "\n"
     end
-    rendering += "  "
+    rendering += " " + "\u{200A}"
     board_size.times do |i|
-      # rendering += ('a'.ord + i).chr + ' '
-      rendering += i.to_s + ' '
+      rendering += ('A'.ord + i).chr + ' '
+      # rendering += i.to_s + ' '
     end
 
     rendering

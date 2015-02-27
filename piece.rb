@@ -1,6 +1,3 @@
-class InvalidMoveError
-end
-
 class Piece
   MOVES = [[1, 1], [1, -1]]
   KING_MOVES = [[-1, 1], [-1, -1]]
@@ -12,11 +9,13 @@ class Piece
     @position = position
     @color = color
     @king = king
-    
+
     board[position] = self
   end
 
   def move(move_sequence)
+    raise InvalidMoveError.new "Invalid move sequence!" unless valid_sequence?(move_sequence)
+
     if move_sequence.length == 2
       start_pos, end_pos = move_sequence
       if valid_slide?(end_pos)
@@ -27,15 +26,14 @@ class Piece
         raise InvalidMoveError.new "Invalid move!"
       end
     elsif move_sequence.length > 2
-      raise InvalidMoveError.new "Invalid move sequence!" unless valid_sequence?(move_sequence)
 
       (move_sequence.length - 1).times do |i|
         perform_jump(move_sequence[i], move_sequence[i + 1])
       end
     else
-      raise InvalidMoveError.new "Invalid move sequence!"
+      raise InvalidMoveError.new "Invalid move sequence! (too short)"
     end
-    
+
     maybe_promote
     true
   end
@@ -43,11 +41,15 @@ class Piece
   def valid_sequence?(move_sequence)
     test_board = board.dup
     starting_piece = test_board[move_sequence.first]
-    
+
     (move_sequence.length - 1).times do |i|
       return false unless starting_piece.perform_jump(move_sequence[i], move_sequence[i + 1])
     end
     true
+  end
+
+  def potential_moves
+    potential_slides + potential_jumps(position)
   end
 
   def maybe_promote
@@ -69,10 +71,10 @@ class Piece
       next unless board.on_board?(neighbor_pos)
       next unless board[neighbor_pos]
       next if board[neighbor_pos].color == color
-      
+
       jump_to = apply_shift(neighbor_pos,shift)
       next unless board.on_board?(jump_to)
-      
+
       if board[jump_to].nil?
         valid_moves << jump_to
       end
@@ -92,14 +94,6 @@ class Piece
     return false unless valid_slide?(end_pos)
     self.position = end_pos
     true
-  end
-
-  def move_diffs
-    king? ? MOVES + KING_MOVES : MOVES
-  end
-
-  def forward_direction
-    move_direction = (color == :white ? 1 : -1)
   end
 
   def valid_slide?(end_pos)
@@ -127,6 +121,14 @@ class Piece
   end
 
   private
+
+  def forward_direction
+    move_direction = (color == :white ? 1 : -1)
+  end
+
+  def move_diffs
+    king? ? MOVES + KING_MOVES : MOVES
+  end
 
   def position=(new_pos)
     board[position] = nil
