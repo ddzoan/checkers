@@ -10,6 +10,10 @@ class Game
     @players = { white: player1, black: player2 }
     @current_player = :white
   end
+
+  def play
+    
+  end
 end
 
 class Player

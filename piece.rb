@@ -17,23 +17,23 @@ class Piece
   end
 
   def move(move_sequence)
-    if move_sequence == 2
+    if move_sequence.length == 2
       start_pos, end_pos = move_sequence
-      if valid_slide(end_pos)
+      if valid_slide?(end_pos)
         perform_slide(end_pos)
-      elsif valid_jumps(start_pos, end_pos)
+      elsif potential_jumps(start_pos)
         perform_jump(start_pos, end_pos)
       else
-        raise InvalidMoveError "Invalid move!"
+        raise InvalidMoveError.new "Invalid move!"
       end
     elsif move_sequence.length > 2
-      raise InvalidMoveError "Invalid move sequence!" unless valid_sequence?(move_sequence)
+      raise InvalidMoveError.new "Invalid move sequence!" unless valid_sequence?(move_sequence)
 
       (move_sequence.length - 1).times do |i|
         perform_jump(move_sequence[i], move_sequence[i + 1])
       end
     else
-      raise InvalidMoveError "Invalid move sequence!"
+      raise InvalidMoveError.new "Invalid move sequence!"
     end
     
     maybe_promote
@@ -57,13 +57,13 @@ class Piece
 
   def perform_jump(start_pos, end_pos)
     return false unless board.on_board?(end_pos)
-    return false unless valid_jumps(start_pos).include?(end_pos)
+    return false unless potential_jumps(start_pos).include?(end_pos)
     self.position = end_pos
     remove_jumped_piece(start_pos, end_pos)
     true
   end
 
-  def valid_jumps(start_pos)
+  def potential_jumps(start_pos)
     move_diffs.each_with_object([]) do |shift, valid_moves|
       neighbor_pos = apply_shift(start_pos, shift)
       next unless board.on_board?(neighbor_pos)
@@ -109,7 +109,7 @@ class Piece
   def potential_slides
     move_diffs.each_with_object([]) do |shift, valid_moves|
       new_pos = apply_shift(position, shift)
-      valid_moves << new_pos if board.on_board?(new_pos)
+      valid_moves << new_pos if board.on_board?(new_pos) && board[new_pos].nil?
     end
   end
 
